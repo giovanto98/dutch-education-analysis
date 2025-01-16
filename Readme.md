@@ -1,3 +1,5 @@
+Certainly! Here’s the updated README.md file in a code format that you can easily copy and paste:
+
 # Dutch Education Facilities Analysis
 
 ## Project Overview
@@ -8,124 +10,68 @@ This project processes and analyzes Dutch education facility locations using DUO
 - Geocoding of facility locations
 - Temporal analysis of operational status
 - Facility type categorization
-- QGIS-ready output formats
+- QGIS-readable output for spatial analysis
 
-## Project Structure
-```
-dutch-education-analysis/
-├── data/
-│   ├── raw/                  # Original DUO datasets
-│   ├── processed/
-│   │   ├── intermediate/     # Cleaned individual datasets
-│   │   └── final/           # QGIS-ready datasets
-│   └── README.md            # Data documentation
-├── scripts/
-│   ├── config_template.py    # Configuration template
-│   ├── 01_process_organizations.py
-│   ├── 02_process_education.py
-│   ├── 03_merge_datasets.py
-│   ├── 04_geocode_*.py      # Geocoding scripts
-│   └── 05_refine_*.py       # Data refinement scripts
-├── requirements.txt
-└── README.md
-```
+## Setup and Installation
 
-## Setup
-
-1. Clone the repository:
+### 1. Clone the Repository
+Clone the repository to your local machine using GitHub Desktop or the command line:
 ```bash
-git clone https://github.com/yourusername/dutch-education-analysis.git
-cd dutch-education-analysis
-```
+git clone https://github.com/giovanto98/dutch-education-analysis.git
 
-2. Create and activate virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # Unix/macOS
-venv\Scripts\activate     # Windows
-```
+2. Install Dependencies
 
-3. Install dependencies:
-```bash
+Install Python dependencies using pip:
+
 pip install -r requirements.txt
-```
 
-4. Configure API key:
-```bash
-cp scripts/config_template.py scripts/config.py
-# Edit config.py with your Google Maps API key
-```
+3. Create a .env File
 
-5. Create directory structure:
-```bash
-mkdir -p data/{raw,processed/{intermediate,final}}
-```
+Create a .env file in the root of the project directory. This file should contain sensitive information like your API key.
 
-## Data Sources
-Required DUO datasets:
-- ORGANISATIES_20250113.csv
-- BASISGEGEVENS_OPLEIDINGEN_20240520.csv
-- RELATIES_20250113.csv
-- OVERGANGEN_20250113.csv
+For security reasons, do not upload your .env file to GitHub. Ensure that it is included in .gitignore to prevent it from being tracked by Git.
 
-Place these files in the `data/raw/` directory.
+Example .env file:
 
-## Usage
+GOOGLE_API_KEY=your_google_api_key_here
 
-1. Process organization data:
-```bash
-python scripts/01_process_organizations.py
-```
+4. Set Up the Virtual Environment
 
-2. Process education data:
-```bash
-python scripts/02_process_education.py
-```
+Create a virtual environment to isolate your project dependencies:
 
-3. Merge datasets:
-```bash
-python scripts/03_merge_datasets.py
-```
+python -m venv venv
 
-4. Geocode locations:
-```bash
-python scripts/04_geocode_vocational.py
-python scripts/04_geocode_secondary.py
-python scripts/04_geocode_higher.py
-python scripts/04_geocode_primary.py
-```
+Activate the virtual environment:
+	•	macOS/Linux:
 
-5. Refine datasets for QGIS:
-```bash
-python scripts/05_refine_vocational.py
-python scripts/05_refine_secondary.py
-python scripts/05_refine_higher.py
-python scripts/05_refine_primary.py
-```
+source venv/bin/activate
 
-## Output Data
-Final datasets (in `data/processed/final/`) include:
-- Geographic coordinates
-- Facility categorization
-- Temporal information
-- Operational status
-- Historical analysis
 
-## Requirements
-- Python 3.8+
-- Google Maps API key
-- Required Python packages in requirements.txt
+	•	Windows:
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+.\venv\Scripts\activate
 
-## License
+
+
+Install the dependencies in your virtual environment:
+
+pip install -r requirements.txt
+
+5. Running the Project
+
+To run the project, simply execute the appropriate Python scripts for geocoding and processing datasets, as described in the repository’s scripts directory.
+
+File Structure
+
+/dutch-education-analysis
+│
+├── data/                       # Datasets used for analysis
+├── scripts/                    # Python scripts for data processing
+├── requirements.txt            # Python dependencies
+├── .gitignore                  # Git ignore file (to avoid uploading sensitive files)
+├── .env                        # Environment variables (e.g., API keys)
+└── README.md                   # Project overview and setup instructions
+
+License
+
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-- Data provided by DUO (Dienst Uitvoering Onderwijs)
-- Geocoding services by Google Maps Platform
