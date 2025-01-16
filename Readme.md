@@ -1,5 +1,3 @@
-Certainly! Here’s the updated README.md file in a code format that you can easily copy and paste:
-
 # Dutch Education Facilities Analysis
 
 ## Project Overview
