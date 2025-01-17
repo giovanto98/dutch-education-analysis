@@ -16,6 +16,9 @@ def process_organizations():
     # Read data
     df = pd.read_csv(input_file, encoding='utf-8', low_memory=False)
     
+    print("\n🔎 Raw CODE_SOORT Distribution BEFORE Processing:")
+    print(df['CODE_SOORT'].value_counts())
+
     # Create clean location fields
     df['full_address'] = df['NAAM_STRAAT_VEST'].fillna('') + ' ' + \
                         df['NR_HUIS_VEST'].fillna('').astype(str) + ' ' + \

@@ -1,0 +1,4 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/dutch_edu_env/bin/python",
+    "python.pythonPath": "${workspaceFolder}/dutch_edu_env/bin/python"
+}

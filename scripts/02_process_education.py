@@ -16,6 +16,9 @@ def process_education_data():
     # Read data with correct encoding
     df = pd.read_csv(input_file, encoding='cp1252', low_memory=False)
     
+    print("\n🔎 Raw Onderwijssector Distribution BEFORE Mapping:")
+    print(df['Onderwijssector'].value_counts())
+
     # Convert dates
     date_columns = ['Begindatum', 'Einddatum', 'Datum laatste wijziging']
     for col in date_columns:
