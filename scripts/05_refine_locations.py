@@ -1,23 +1,38 @@
 import pandas as pd
 import numpy as np
-import re
-import os
+import logging
 from pathlib import Path
+import os
 from datetime import datetime
 
-# Set working directory to the script's directory
-script_dir = Path(__file__).resolve().parent
-project_root = script_dir.parent
-os.chdir(project_root)
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 class LocationRefiner:
-    """Handles refinement of education facility location data."""
+    """Combines and refines education facility location data with temporal analysis."""
     
     def __init__(self, sector):
         """Initialize refiner for a specific education sector."""
         self.sector = sector.lower()
         
-        # Define sector-specific categorizations
+        # Set up project paths
+        self.script_dir = Path(__file__).resolve().parent
+        self.project_root = self.script_dir.parent
+        
+        # Define directory structure
+        self.data_dir = self.project_root / 'data'
+        self.final_dir = self.data_dir / 'processed' / 'final'
+        self.geocoded_dir = self.data_dir / 'geocoded'
+        
+        # Define input/output files
+        self.base_file = self.final_dir / f'{sector}_education_locations.csv'
+        self.geocoded_file = self.geocoded_dir / f'geocoded_{sector}_locations.csv'
+        self.output_file = self.final_dir / f'cleaned_{sector}_for_qgis.csv'
+        
+        # Define facility categories
         self.facility_categories = {
             'primary': {
                 'BAS': 'Regular Primary School',
@@ -33,42 +48,19 @@ class LocationRefiner:
                 'VSTZ': 'Secondary Branch Location'
             },
             'vocational': {
-                'MBO': 'Regular MBO Institution',
-                'VE': 'Adult Education Center',
-                'ILOC': 'International Education Center'
+                'ROC': 'Regional Education Center',
+                'ROCV': 'Specialized Regional Center',
+                'VAK': 'Vocational School',
+                'VAKV': 'Advanced Vocational',
+                'ILOC': 'International Location'
             },
             'higher': {
-                'HBO': 'University of Applied Sciences',
-                'WO': 'Research University',
-                'LOC': 'Higher Education Branch Location'
+                'HBOS': 'University of Applied Sciences',
+                'UNIV': 'Research University',
+                'LOC': 'Higher Education Branch',
+                'ULOC': 'University Branch'
             }
         }
-        
-        # Define paths
-        self.data_dir = project_root / 'data' / 'processed' / 'final'
-        self.base_file = self.data_dir / f'{sector}_education_locations.csv'
-        self.geocoded_file = self.data_dir / f'geocoded_{sector}_locations.csv'
-        self.output_file = self.data_dir / f'cleaned_{sector}_locations_for_qgis.csv'
-
-    def extract_house_number(self, address):
-        """Extract house number from full address."""
-        if pd.isna(address):
-            return ''
-        match = re.search(r'\b\d+\b', str(address))
-        return match.group(0) if match else ''
-
-    def extract_postcode(self, address):
-        """Extract postcode from full address."""
-        if pd.isna(address):
-            return ''
-        match = re.search(r'\b\d{4}[A-Z]{2}\b', str(address))
-        return match.group(0).lower() if match else ''
-
-    def clean_postcode(self, postcode):
-        """Normalize postcodes."""
-        if pd.isna(postcode):
-            return ''
-        return str(postcode).strip().replace(' ', '').lower()
 
     def calculate_operation_years(self, row):
         """Calculate years of operation for a location."""
@@ -111,136 +103,132 @@ class LocationRefiner:
         except:
             return 'Unknown'
 
-    def get_most_recent_record(self, group):
-        """Get most recent record from a group of duplicate locations."""
-        # Convert dates to datetime
-        group['DT_IN_BEDRIJF'] = pd.to_datetime(group['DT_IN_BEDRIJF'])
-        group['DT_UIT_BEDRIJF'] = pd.to_datetime(group['DT_UIT_BEDRIJF'])
-        
-        # Prioritize active records
-        active_records = group[group['location_status'] == 'Active']
-        if not active_records.empty:
-            return active_records.iloc[0]
-        
-        # If no active records, take the most recent one based on start date
-        return group.sort_values('DT_IN_BEDRIJF', ascending=False).iloc[0]
-
     def load_and_merge_data(self):
         """Load and merge base and geocoded datasets if available."""
-        print(f"\nLoading {self.sector} education data...")
+        logging.info(f"\nLoading {self.sector} education data...")
         
         # Load base dataset
         base_data = pd.read_csv(self.base_file)
-        print(f"Loaded {len(base_data)} records from base dataset")
-        
-        # Prepare base dataset
-        base_data['postcode_cleaned'] = base_data['POSTCODE_VEST'].apply(self.clean_postcode)
-        base_data['house_number'] = base_data['full_address'].apply(self.extract_house_number)
+        logging.info(f"Loaded {len(base_data)} records from base dataset")
         
         # Check if geocoded data exists
-        if self.geocoded_file.exists():
-            print("Found geocoded data, merging...")
+        if self.geocoded_file.exists() and self.sector != 'primary':
+            logging.info("Found geocoded data, merging...")
             geocoded_data = pd.read_csv(self.geocoded_file)
-            geocoded_data['postcode_cleaned'] = geocoded_data['full_address'].apply(self.extract_postcode)
-            geocoded_data['house_number'] = geocoded_data['full_address'].apply(self.extract_house_number)
             
             # Merge datasets
-            merged_data = pd.merge(
-                base_data,
-                geocoded_data[['postcode_cleaned', 'house_number', 'latitude', 'longitude']],
-                on=['postcode_cleaned', 'house_number'],
+            merged_data = base_data.merge(
+                geocoded_data[['full_address', 'latitude', 'longitude']],
+                on='full_address',
                 how='left'
             )
-            print(f"Merged data contains {len(merged_data)} records")
+            logging.info(f"Merged data contains {len(merged_data)} records")
         else:
-            print("No geocoded data found, proceeding with base dataset only")
+            logging.info("No geocoded data available/needed")
             merged_data = base_data
-            merged_data['latitude'] = np.nan
-            merged_data['longitude'] = np.nan
+            if self.sector != 'primary':
+                merged_data['latitude'] = np.nan
+                merged_data['longitude'] = np.nan
         
         return merged_data
 
-    def process(self):
-        """Main processing function."""
-        # Load and merge data
-        merged_data = self.load_and_merge_data()
+    def add_temporal_analysis(self, df):
+        """Add temporal analysis fields to dataset."""
+        logging.info("Adding temporal analysis fields...")
         
-        # Add location status
-        print("\nDetermining location statuses...")
-        merged_data['location_status'] = merged_data.apply(self.determine_location_status, axis=1)
+        # Process dates
+        df['DT_IN_BEDRIJF'] = pd.to_datetime(df['DT_IN_BEDRIJF'])
+        df['DT_UIT_BEDRIJF'] = pd.to_datetime(df['DT_UIT_BEDRIJF'])
         
-        # Process temporal information
-        print("\nProcessing temporal information...")
-        merged_data['DT_IN_BEDRIJF'] = pd.to_datetime(merged_data['DT_IN_BEDRIJF'])
-        merged_data['DT_UIT_BEDRIJF'] = pd.to_datetime(merged_data['DT_UIT_BEDRIJF'])
-        
-        # Remove exact duplicates
-        print("\nRemoving exact duplicates...")
-        merged_data = merged_data.drop_duplicates()
-        
-        # Keep most recent/relevant record per location
-        print("\nKeeping most relevant records per location...")
-        unique_locations = merged_data.groupby(['latitude', 'longitude'], group_keys=False).apply(self.get_most_recent_record)
-        unique_locations = unique_locations.reset_index(drop=True)
-        
-        # Add temporal analysis fields
-        print("\nAdding analysis fields...")
-        unique_locations['years_of_operation'] = unique_locations.apply(self.calculate_operation_years, axis=1)
-        unique_locations['decade_opened'] = unique_locations['DT_IN_BEDRIJF'].apply(self.get_decade)
-        unique_locations['decade_closed'] = unique_locations['DT_UIT_BEDRIJF'].apply(self.get_decade)
-        unique_locations['facility_type'] = unique_locations.apply(self.categorize_facility, axis=1)
+        # Add analysis fields
+        df['years_of_operation'] = df.apply(self.calculate_operation_years, axis=1)
+        df['decade_opened'] = df['DT_IN_BEDRIJF'].apply(self.get_decade)
+        df['decade_closed'] = df['DT_UIT_BEDRIJF'].apply(self.get_decade)
+        df['facility_type'] = df.apply(self.categorize_facility, axis=1)
+        df['location_status'] = df.apply(self.determine_location_status, axis=1)
         
         # Add temporal summary
-        unique_locations['operation_period'] = unique_locations.apply(
+        df['operation_period'] = df.apply(
             lambda x: f"{x['DT_IN_BEDRIJF'].strftime('%Y-%m-%d')} to " + 
                      (x['DT_UIT_BEDRIJF'].strftime('%Y-%m-%d') if pd.notna(x['DT_UIT_BEDRIJF']) else 'Present'),
             axis=1
         )
         
-        # Prepare final columns
-        final_columns = [
-            'NR_ADMINISTRATIE', 'CODE_FUNCTIE', 'CODE_SOORT', 'NAAM_VOLLEDIG',
-            'full_address', 'postcode_cleaned', 'house_number', 'latitude', 'longitude',
-            'POSTCODE_VEST', 'NAAM_PLAATS_VEST', 'PROVINCIE_VEST', 'location_status',
-            'facility_type', 'years_of_operation', 'decade_opened', 'decade_closed',
-            'operation_period', 'DT_IN_BEDRIJF', 'DT_UIT_BEDRIJF', 'CODE_STAND_RECORD'
-        ]
+        return df
+
+    def process(self):
+        """Main processing function."""
+        try:
+            # Load and merge data
+            merged_data = self.load_and_merge_data()
+            
+            # Add temporal analysis
+            final_data = self.add_temporal_analysis(merged_data)
+            
+            # Prepare final columns
+            keep_columns = [
+                'NR_ADMINISTRATIE', 'CODE_FUNCTIE', 'CODE_SOORT', 'NAAM_VOLLEDIG',
+                'full_address', 'POSTCODE_VEST', 'NAAM_PLAATS_VEST', 'PROVINCIE_VEST',
+                'location_status', 'facility_type', 'years_of_operation',
+                'decade_opened', 'decade_closed', 'operation_period',
+                'DT_IN_BEDRIJF', 'DT_UIT_BEDRIJF'
+            ]
+            
+            # Add geocoding columns if available
+            if 'latitude' in final_data.columns:
+                keep_columns.extend(['latitude', 'longitude'])
+            
+            final_data = final_data[keep_columns]
+            
+            # Save the final dataset
+            final_data.to_csv(self.output_file, index=False)
+            logging.info(f"\nSaved QGIS-ready dataset to: {self.output_file}")
+            
+            # Log summary statistics
+            self.log_summary_statistics(final_data)
+            
+            return final_data
+            
+        except Exception as e:
+            logging.error(f"Error during processing: {str(e)}", exc_info=True)
+            raise
+
+    def log_summary_statistics(self, df):
+        """Log summary statistics about the refined data."""
+        logging.info("\nDataset Summary:")
+        logging.info(f"Total records: {len(df)}")
         
-        final_data = unique_locations[final_columns]
+        logging.info("\nFacility type distribution:")
+        logging.info(df['facility_type'].value_counts().to_string())
         
-        # Print summary
-        print("\nDataset Summary:")
-        print(f"Total unique locations: {len(final_data)}")
-        print("\nLocation status distribution:")
-        print(final_data['location_status'].value_counts())
-        print("\nFacility type distribution:")
-        print(final_data['facility_type'].value_counts())
-        print("\nDecade opened distribution:")
-        print(final_data['decade_opened'].value_counts().sort_index())
-        print("\nAverage years of operation: {:.1f}".format(final_data['years_of_operation'].mean()))
+        logging.info("\nLocation status distribution:")
+        logging.info(df['location_status'].value_counts().to_string())
         
-        # Save the final dataset
-        final_data.to_csv(self.output_file, index=False)
-        print(f"\nSaved QGIS-ready dataset to: {self.output_file}")
+        logging.info("\nDecade opened distribution:")
+        logging.info(df['decade_opened'].value_counts().sort_index().to_string())
         
-        return final_data
+        if 'latitude' in df.columns:
+            geocoded = df['latitude'].notna().sum()
+            logging.info(f"\nGeocoding coverage: {geocoded}/{len(df)} ({geocoded/len(df)*100:.1f}%)")
+        
+        logging.info(f"\nAverage years of operation: {df['years_of_operation'].mean():.1f}")
 
 def main():
     """Main execution function."""
     sectors = ['primary', 'secondary', 'vocational', 'higher']
     
     for sector in sectors:
-        print(f"\n{'='*80}")
-        print(f"Processing {sector.upper()} education sector")
-        print(f"{'='*80}")
+        logging.info(f"\n{'='*80}")
+        logging.info(f"Processing {sector.upper()} education sector")
+        logging.info(f"{'='*80}")
         
         try:
             refiner = LocationRefiner(sector)
             final_data = refiner.process()
             if final_data is not None:
-                print(f"Successfully processed {sector} education locations")
+                logging.info(f"Successfully processed {sector} education locations")
         except Exception as e:
-            print(f"Error processing {sector} sector: {e}")
+            logging.error(f"Error processing {sector} sector: {e}")
 
 if __name__ == "__main__":
     main()

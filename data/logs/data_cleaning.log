@@ -1,0 +1,109 @@
+2025-01-21 16:20:24,310 - INFO - Verified directory exists: /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis/data/geocoded
+2025-01-21 16:20:24,311 - INFO - Verified directory exists: /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis/data/processed/final
+2025-01-21 16:20:24,311 - INFO - Verified directory exists: /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis/data/processed/intermediate
+2025-01-21 16:20:24,311 - INFO - Initialized DatasetCleaner with project root: /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis
+2025-01-21 16:20:24,317 - INFO - Loaded 6440 geocoded higher locations
+2025-01-21 16:20:24,323 - INFO - Loaded 4824 geocoded secondary locations
+2025-01-21 16:20:24,327 - INFO - Loaded 5034 geocoded vocational locations
+2025-01-21 16:20:24,344 - INFO - Loaded 8073 higher education records
+2025-01-21 16:20:24,353 - INFO - Loaded 4824 secondary education records
+2025-01-21 16:20:24,363 - INFO - Loaded 5378 vocational education records
+2025-01-21 16:20:24,448 - INFO - Loaded 70551 primary education records
+2025-01-21 16:20:24,448 - INFO - 
+Processing higher education sector...
+2025-01-21 16:20:24,448 - INFO - Cleaning higher education data...
+2025-01-21 16:20:24,455 - INFO - Checking for duplicates...
+2025-01-21 16:20:24,469 - INFO - Found 6587 exact duplicate addresses
+2025-01-21 16:20:24,479 - INFO - Matching addresses with geocoded locations...
+2025-01-21 16:20:24,508 - INFO - Applying address matching...
+2025-01-21 16:20:45,877 - INFO - Matched 3443/3537 addresses (97.3%)
+2025-01-21 16:20:45,891 - INFO - Saved cleaned data to /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis/data/processed/final/cleaned_higher_for_qgis.csv
+2025-01-21 16:20:45,891 - INFO - 
+Summary Statistics for higher education:
+2025-01-21 16:20:45,891 - INFO - Total records: 3537
+2025-01-21 16:20:45,891 - INFO - Geocoded locations: 3443 (97.3%)
+2025-01-21 16:20:45,892 - INFO - 
+Address quality distribution:
+2025-01-21 16:20:45,892 - INFO - address_quality
+complete      3536
+incomplete       1
+2025-01-21 16:20:45,892 - INFO - 
+Institution type distribution:
+2025-01-21 16:20:45,892 - INFO - CODE_SOORT
+LOC     2866
+ULOC     430
+HBOS     203
+UNIV      38
+2025-01-21 16:20:45,892 - INFO - 
+Processing secondary education sector...
+2025-01-21 16:20:45,892 - INFO - Cleaning secondary education data...
+2025-01-21 16:20:45,895 - INFO - Checking for duplicates...
+2025-01-21 16:20:45,904 - INFO - Found 4440 exact duplicate addresses
+2025-01-21 16:20:45,907 - INFO - Matching addresses with geocoded locations...
+2025-01-21 16:20:45,927 - INFO - Applying address matching...
+2025-01-21 16:20:51,526 - INFO - Matched 1710/1711 addresses (99.9%)
+2025-01-21 16:20:51,532 - INFO - Saved cleaned data to /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis/data/processed/final/cleaned_secondary_for_qgis.csv
+2025-01-21 16:20:51,532 - INFO - 
+Summary Statistics for secondary education:
+2025-01-21 16:20:51,532 - INFO - Total records: 1711
+2025-01-21 16:20:51,532 - INFO - Geocoded locations: 1710 (99.9%)
+2025-01-21 16:20:51,532 - INFO - 
+Address quality distribution:
+2025-01-21 16:20:51,532 - INFO - address_quality
+complete      1710
+incomplete       1
+2025-01-21 16:20:51,533 - INFO - 
+Institution type distribution:
+2025-01-21 16:20:51,533 - INFO - CODE_SOORT
+VOS     1103
+PROS     225
+VSTS     208
+VSTZ     147
+AOCV      28
+2025-01-21 16:20:51,533 - INFO - 
+Processing vocational education sector...
+2025-01-21 16:20:51,533 - INFO - Cleaning vocational education data...
+2025-01-21 16:20:51,536 - INFO - Checking for duplicates...
+2025-01-21 16:20:51,545 - INFO - Found 3170 exact duplicate addresses
+2025-01-21 16:20:51,548 - INFO - Matching addresses with geocoded locations...
+2025-01-21 16:20:51,571 - INFO - Applying address matching...
+2025-01-21 16:21:13,715 - INFO - Matched 3438/3477 addresses (98.9%)
+2025-01-21 16:21:13,728 - INFO - Saved cleaned data to /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis/data/processed/final/cleaned_vocational_for_qgis.csv
+2025-01-21 16:21:13,728 - INFO - 
+Summary Statistics for vocational education:
+2025-01-21 16:21:13,728 - INFO - Total records: 3477
+2025-01-21 16:21:13,728 - INFO - Geocoded locations: 3438 (98.9%)
+2025-01-21 16:21:13,728 - INFO - 
+Address quality distribution:
+2025-01-21 16:21:13,728 - INFO - address_quality
+complete      3476
+incomplete       1
+2025-01-21 16:21:13,728 - INFO - 
+Institution type distribution:
+2025-01-21 16:21:13,728 - INFO - CODE_SOORT
+ILOC    3309
+ROC      111
+ROCV      32
+VAK       21
+VAKV       4
+2025-01-21 16:21:13,729 - INFO - 
+Processing primary education sector...
+2025-01-21 16:21:13,729 - INFO - Cleaning primary education data...
+2025-01-21 16:21:13,761 - INFO - Checking for duplicates...
+2025-01-21 16:21:13,873 - INFO - Found 69879 exact duplicate addresses
+2025-01-21 16:21:13,927 - INFO - Saved cleaned data to /Users/giovi/Documents/StudioBereikbaar/SB455 - Impact assessment of accessibility/dutch-education-analysis/data/processed/final/cleaned_primary_for_qgis.csv
+2025-01-21 16:21:13,927 - INFO - 
+Summary Statistics for primary education:
+2025-01-21 16:21:13,927 - INFO - Total records: 14116
+2025-01-21 16:21:13,927 - INFO - 
+Address quality distribution:
+2025-01-21 16:21:13,927 - INFO - address_quality
+complete      14115
+incomplete        1
+2025-01-21 16:21:13,928 - INFO - 
+Institution type distribution:
+2025-01-21 16:21:13,928 - INFO - CODE_SOORT
+BAS     9813
+VST     3469
+SPEC     476
+SBAS     358
