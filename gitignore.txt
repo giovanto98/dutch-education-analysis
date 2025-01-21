@@ -24,6 +24,7 @@ scripts/debug.py
 venv/
 ENV/
 env/
+dutch_edu_env/
 
 # IDEs
 .idea/
@@ -35,10 +36,14 @@ env/
 config.py
 data/raw/*
 data/processed/*
+data/geocoded/*
+data/logs/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/processed/intermediate/.gitkeep
 !data/processed/final/.gitkeep
+!data/geocoded/.gitkeep
+!data/logs/.gitkeep
 .env
 
 # OS generated files
