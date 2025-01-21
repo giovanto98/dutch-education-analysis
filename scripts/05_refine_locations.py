@@ -4,6 +4,9 @@ import logging
 from pathlib import Path
 import os
 from datetime import datetime
+from thefuzz import fuzz
+from thefuzz import process
+import re
 
 # Set up logging
 logging.basicConfig(
@@ -31,6 +34,14 @@ class LocationRefiner:
         self.base_file = self.final_dir / f'{sector}_education_locations.csv'
         self.geocoded_file = self.geocoded_dir / f'geocoded_{sector}_locations.csv'
         self.output_file = self.final_dir / f'cleaned_{sector}_for_qgis.csv'
+        
+        # Address standardization patterns
+        self.address_patterns = {
+            'remove_whitespace': re.compile(r'\s+'),
+            'normalize_street': re.compile(r'(straat|str\.|str)',re.IGNORECASE),
+            'normalize_number': re.compile(r'(nummer|nr\.|nr)',re.IGNORECASE),
+            'remove_punctuation': re.compile(r'[^\w\s]')
+        }
         
         # Define facility categories
         self.facility_categories = {
@@ -61,6 +72,68 @@ class LocationRefiner:
                 'ULOC': 'University Branch'
             }
         }
+
+    def standardize_address(self, address: str) -> str:
+        """Standardize address string for matching."""
+        if pd.isna(address):
+            return ''
+        
+        address = str(address).lower()
+        
+        # Apply standardization patterns
+        address = self.address_patterns['remove_whitespace'].sub(' ', address)
+        address = self.address_patterns['normalize_street'].sub('straat', address)
+        address = self.address_patterns['normalize_number'].sub('nr', address)
+        address = self.address_patterns['remove_punctuation'].sub('', address)
+        
+        return address.strip()
+
+    def match_addresses(self, df: pd.DataFrame, geocoded_df: pd.DataFrame, 
+                       threshold: int = 85) -> pd.DataFrame:
+        """Match addresses between main dataset and geocoded locations."""
+        logging.info("Matching addresses with geocoded locations...")
+        
+        # Create standardized addresses for both datasets
+        df['standard_address'] = df['full_address'].apply(self.standardize_address)
+        geocoded_df['standard_address'] = geocoded_df['full_address'].apply(self.standardize_address)
+        
+        # Create dictionary for faster lookup
+        geocoded_dict = dict(zip(geocoded_df['standard_address'], 
+                               zip(geocoded_df['latitude'], geocoded_df['longitude'])))
+        
+        def find_best_match(address):
+            if pd.isna(address) or address == '':
+                return None, None
+            
+            # Try exact match first
+            if address in geocoded_dict:
+                return geocoded_dict[address]
+            
+            # Try fuzzy matching
+            matches = process.extractBests(
+                address,
+                geocoded_dict.keys(),
+                score_cutoff=threshold,
+                limit=1
+            )
+            
+            if matches:
+                best_match = matches[0][0]
+                return geocoded_dict[best_match]
+            return None, None
+        
+        # Apply matching
+        logging.info("Applying address matching...")
+        matched_coords = df['standard_address'].apply(find_best_match)
+        df['latitude'], df['longitude'] = zip(*matched_coords)
+        
+        # Log matching results
+        matched = df['latitude'].notna().sum()
+        total = len(df)
+        match_rate = (matched / total) * 100
+        logging.info(f"Matched {matched}/{total} addresses ({match_rate:.1f}%)")
+        
+        return df
 
     def calculate_operation_years(self, row):
         """Calculate years of operation for a location."""
@@ -116,12 +189,8 @@ class LocationRefiner:
             logging.info("Found geocoded data, merging...")
             geocoded_data = pd.read_csv(self.geocoded_file)
             
-            # Merge datasets
-            merged_data = base_data.merge(
-                geocoded_data[['full_address', 'latitude', 'longitude']],
-                on='full_address',
-                how='left'
-            )
+            # Match addresses using fuzzy matching
+            merged_data = self.match_addresses(base_data, geocoded_data)
             logging.info(f"Merged data contains {len(merged_data)} records")
         else:
             logging.info("No geocoded data available/needed")
